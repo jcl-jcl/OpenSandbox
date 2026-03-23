@@ -237,6 +237,35 @@ data: {"type":"error","error":{"ename":"CommandExecError","evalue":"7","tracebac
         execution.ExitCode.Should().Be(7);
     }
 
+    [Fact]
+    public async Task RunAsync_ShouldKeepExitCodeNullWhenErrorValueIsEmpty()
+    {
+        var handler = new StubHttpMessageHandler((_, _) =>
+        {
+            const string sse = """
+data: {"type":"init","text":"cmd-3","timestamp":1}
+
+data: {"type":"execution_complete","timestamp":2,"execution_time":4}
+
+data: {"type":"error","error":{"ename":"CommandExecError","evalue":"","traceback":["failed"]},"timestamp":3}
+
+""";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(sse, Encoding.UTF8, "text/event-stream")
+            });
+        });
+        var adapter = CreateAdapter(handler);
+
+        var execution = await adapter.RunAsync("bad command");
+
+        execution.Id.Should().Be("cmd-3");
+        execution.Error.Should().NotBeNull();
+        execution.Error!.Value.Should().BeEmpty();
+        execution.Complete.Should().NotBeNull();
+        execution.ExitCode.Should().BeNull();
+    }
+
     // --- Bash session API integration tests ---
 
     [Fact]

@@ -19,6 +19,7 @@ using OpenSandbox.Factory;
 using OpenSandbox.Models;
 using OpenSandbox.Services;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace OpenSandbox.Tests;
@@ -89,7 +90,7 @@ public class SandboxEgressLifecycleTests
         {
             return new ExecdStack
             {
-                Commands = new StubCommands(),
+                Commands = new Mock<IExecdCommands>(MockBehavior.Strict).Object,
                 Files = new StubFiles(),
                 Health = new StubHealth(),
                 Metrics = new StubMetrics()
@@ -182,24 +183,6 @@ public class SandboxEgressLifecycleTests
             PatchRulesCallCount++;
             return Task.CompletedTask;
         }
-    }
-
-    private sealed class StubCommands : IExecdCommands
-    {
-        public IAsyncEnumerable<ServerStreamEvent> RunStreamAsync(string command, RunCommandOptions? options = null, CancellationToken cancellationToken = default) =>
-            AsyncEnumerable.Empty<ServerStreamEvent>();
-
-        public Task<Execution> RunAsync(string command, RunCommandOptions? options = null, ExecutionHandlers? handlers = null, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task<CommandStatus> GetCommandStatusAsync(string executionId, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task<CommandLogs> GetBackgroundCommandLogsAsync(string executionId, long? cursor = null, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
-
-        public Task InterruptAsync(string executionId, CancellationToken cancellationToken = default) =>
-            throw new NotImplementedException();
     }
 
     private sealed class StubFiles : ISandboxFiles

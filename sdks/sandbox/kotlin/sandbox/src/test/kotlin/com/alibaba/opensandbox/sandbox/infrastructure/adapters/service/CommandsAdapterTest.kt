@@ -183,6 +183,31 @@ class CommandsAdapterTest {
     }
 
     @Test
+    fun `run should keep exit code null when command error value is blank`() {
+        val initEvent = """{"type":"init","text":"cmd-123","timestamp":1672531200000}"""
+        val completeEvent = """{"type":"execution_complete","execution_time":100,"timestamp":1672531201000}"""
+        val errorEvent =
+            """{"type":"error","error":{"ename":"CommandExecError","evalue":"","traceback":["failed"]},"timestamp":1672531202000}"""
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody("$initEvent\n$completeEvent\n$errorEvent\n"),
+        )
+
+        val execution =
+            commandsAdapter.run(
+                RunCommandRequest.builder()
+                    .command("bad command")
+                    .build(),
+            )
+
+        assertEquals(null, execution.exitCode)
+        assertEquals("", execution.error?.value)
+        assertEquals(100L, execution.complete?.executionTimeInMillis)
+    }
+
+    @Test
     fun `run command builder should require uid when gid is provided`() {
         assertThrows<IllegalArgumentException> {
             RunCommandRequest.builder()

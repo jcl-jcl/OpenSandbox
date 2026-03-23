@@ -129,9 +129,12 @@ internal sealed class CommandsAdapter : IExecdCommands
 
         if (!(options?.Background ?? false))
         {
-            if (int.TryParse(execution.Error?.Value, out var exitCode))
+            if (execution.Error != null)
             {
-                execution.ExitCode = exitCode;
+                if (int.TryParse(execution.Error.Value, out var exitCode))
+                {
+                    execution.ExitCode = exitCode;
+                }
             }
             else if (execution.Complete != null)
             {

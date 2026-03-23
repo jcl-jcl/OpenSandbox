@@ -124,8 +124,11 @@ internal class CommandsAdapter(
             }
             if (!request.background) {
                 execution.exitCode =
-                    execution.error?.value?.toIntOrNull()
-                        ?: if (execution.complete != null) 0 else null
+                    if (execution.error != null) {
+                        execution.error?.value?.toIntOrNull()
+                    } else {
+                        if (execution.complete != null) 0 else null
+                    }
             }
             return execution
         } catch (e: Exception) {

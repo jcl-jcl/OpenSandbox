@@ -189,13 +189,15 @@ export class CommandsAdapter implements ExecdCommands {
     }
 
     if (!opts?.background) {
-      const errorValue = execution.error?.value;
-      const parsedExitCode = errorValue == null ? Number.NaN : Number(errorValue);
-      execution.exitCode = Number.isFinite(parsedExitCode)
-        ? parsedExitCode
-        : execution.complete
-          ? 0
-          : null;
+      const errorValue = execution.error?.value?.trim();
+      const parsedExitCode =
+        errorValue && /^-?\d+$/.test(errorValue) ? Number(errorValue) : Number.NaN;
+      execution.exitCode =
+        execution.error != null
+          ? (Number.isFinite(parsedExitCode) ? parsedExitCode : null)
+          : execution.complete
+            ? 0
+            : null;
     }
 
     return execution;

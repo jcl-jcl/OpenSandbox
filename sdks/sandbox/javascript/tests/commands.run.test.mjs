@@ -54,3 +54,21 @@ test("CommandsAdapter.run infers non-zero exitCode from final error state", asyn
   assert.equal(execution.complete, undefined);
   assert.equal(execution.exitCode, 7);
 });
+
+test("CommandsAdapter.run keeps exitCode null when error value is empty", async () => {
+  const adapter = createAdapter(
+    [
+      'data: {"type":"init","text":"cmd-3","timestamp":1}',
+      'data: {"type":"execution_complete","timestamp":2,"execution_time":4}',
+      'data: {"type":"error","error":{"ename":"CommandExecError","evalue":"","traceback":["failed"]},"timestamp":3}',
+      "",
+    ].join("\n"),
+  );
+
+  const execution = await adapter.run("bad command");
+
+  assert.equal(execution.id, "cmd-3");
+  assert.equal(execution.error?.value, "");
+  assert.equal(execution.complete?.executionTimeMs, 4);
+  assert.equal(execution.exitCode, null);
+});
